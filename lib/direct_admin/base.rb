@@ -76,7 +76,7 @@ module DirectAdmin #:nodoc:
       check_required_options(:do, options)
   
       command = options[:command]
-      url = URI.parse(@host + @command)
+      url = URI.parse(@host + command)
   
       # For GET Requests..
       # Some API actions, like CMD_API_SHOW_USER_DOMAINS must be requested via GET
@@ -88,8 +88,7 @@ module DirectAdmin #:nodoc:
         unless query_string.empty?
           query_params = query_string.map {|k,v| "#{k}=#{v}"}.join("&")
         end
-    
-        req = Net::HTTP::Get.new("/#{command}?#{query}")
+        req = Net::HTTP::Get.new("/#{command}#{('?'+query) unless query.empty?}")
       else
         req = Net::HTTP::Post.new(url.path)
     
@@ -97,10 +96,12 @@ module DirectAdmin #:nodoc:
           req.set_form_data(options[:formdata])
         end
       end
+
   
       req.basic_auth(@username, @password)
   
       response = Net::HTTP.new(url.host, url.port).start {|http| http.request(req) }
+      puts response
   
       raise DirectAdminError, "Unable to connect to DirectAdmin" if !response
   
